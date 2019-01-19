@@ -33,9 +33,17 @@ for q in range(0, len(similar_questions)):
   else:
     sim_questions_dict[similar_questions[q][0]] = [similar_questions[q][1]]
 
+print(sim_questions_dict)
+
 output_file = open('question_sim_4k.tsv','w+')
 
 output_file.write('qid \t similar-qids \n')
 
-for key, value in sim_questions_dict.items():
-  output_file.write(str(key) + '\t' + (', '.join(str(e) for e in value)) + '\n')
+for q in words_in_questions:
+  flag = False
+  for key, value in sim_questions_dict.items():
+    if int(key) == int(q[0]):
+      flag = True
+      output_file.write(str(key) + '\t' + (', '.join(str(e) for e in value)) + '\n')
+  if not flag:
+    output_file.write(str(q[0]) + '\n')
