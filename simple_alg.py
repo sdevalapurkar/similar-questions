@@ -46,4 +46,4 @@ for q in words_in_questions:
       flag = True
       output_file.write(str(key) + '\t' + (', '.join(str(e) for e in value)) + '\n')
   if not flag:
-    output_file.write(str(q[0]) + '\n')
+    output_file.write(str(q[0]) + '\t' + '\n')
