@@ -24,24 +24,28 @@ for word_list in words_in_questions:
 
   fnv_hashes[word_list[0]] = list
 
-hash_tables_dict = dict()
+hash_tables = [dict() for i in range(1, 15)]
 min_hash_sigs_dict = dict()
 
-for k in range(14):
+for hash_table in hash_tables:
   for i in range(6):
     ai = uuid.uuid4().int & (1<<64)-1
     bi = uuid.uuid4().int & (1<<64)-1
 
     for key, value in fnv_hashes.items():
       list = []
+      hash_sigs_list = []
 
       for fnv_hash in value:
         min_hash_val = ((ai * fnv_hash) + bi) % p
         list.append(min_hash_val)
-      
-      if (min_hash_sigs_dict.get(key) is not None):
-        min_hash_sigs_dict[key] += str(min(list))
-      else:
-        min_hash_sigs_dict[key] = str(min(list))
+        hash_sigs_list.append(str(min(list)))
 
-  hash_tables_dict[k] = min_hash_sigs_dict
+      signature = ','.join(hash_sigs_list)
+
+      if (hash_table.get(signature) is not None):
+        hash_table[signature].append(key)
+      else:
+        hash_table[signature] = [key]
+
+print(hash_tables)
