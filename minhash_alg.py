@@ -98,12 +98,14 @@ for key, value in similar_questions_dict.items():
       else:
         final_sim_questions_dict[int_key] = [int_qid]
 
-output_file = open('question_sim_4k.tsv','w+')
+output_file = open('question_sim_150k.tsv','w+')
 
 output_file.write('qid \t similar-qids \n')
 
-for key in sorted(final_sim_questions_dict.keys()):
-  if (len(final_sim_questions_dict[key]) > 1):
+for question in words_in_questions:
+  key = int(question[0])
+
+  if (final_sim_questions_dict.get(key) is not None and len(final_sim_questions_dict.get(key)) > 1):
     output_file.write(str(key) + '\t' + (', '.join(str(e) for e in final_sim_questions_dict[key] if e != key)) + '\n')
   else:
     output_file.write(str(key) + '\t' + '\n')
