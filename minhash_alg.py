@@ -96,3 +96,17 @@ for key, value in updated_similar_questions_dict.items():
         final_sim_questions_dict[int_key].append(int_qid)
       else:
         final_sim_questions_dict[int_key] = [int_qid]
+
+output_file = open('question_sim_150k.tsv','w+')
+
+output_file.write('qid \t similar-qids \n')
+
+for q in words_in_questions:
+  flag = False
+
+  for key, value in final_sim_questions_dict.items():
+    if int(key) == int(q[0]):
+      flag = True
+      output_file.write(str(key) + '\t' + (', '.join(str(e) for e in value)) + '\n')
+  if not flag:
+    output_file.write(str(q[0]) + '\t' + '\n')
