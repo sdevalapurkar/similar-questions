@@ -19,41 +19,52 @@ words_in_questions.pop(0)
 fnv_hashes = dict()
 
 for word_list in words_in_questions:
-  list = []
+  words_list_new = list(set(word_list[1]))
+  new_list = []
 
-  for word in word_list[1]:
+  for word in words_list_new:
     word = word.encode('utf-8')
-    list.append(hash(word, bits=64))
+    new_list.append(hash(word, bits=64))
 
-  fnv_hashes[word_list[0]] = list
+  fnv_hashes[word_list[0]] = new_list
 
-hash_tables = [dict() for i in range(1, 15)]
-min_hash_sigs_dict = dict()
+hash_tables_with_signature_as_key = [dict() for i in range(1, 15)]
+hash_tables_with_qid_as_key = [dict() for i in range(1, 15)]
+hash_sigs_list = dict()
+index = 0
 
-for hash_table in hash_tables:
-  for i in range(6):
+for hash_table in hash_tables_with_signature_as_key: # for each of 14 hash tables
+  collect_sigs = dict()
+
+  for i in range(6): # do it 6 times and generate minhashes
     ai = uuid.uuid4().int & (1<<64)-1
     bi = uuid.uuid4().int & (1<<64)-1
 
-    for key, value in fnv_hashes.items():
+    for key, value in fnv_hashes.items(): # for each question
       list = []
-      hash_sigs_list = []
 
-      for fnv_hash in value:
+      for fnv_hash in value: # for each fnv hash of each word in question
         min_hash_val = ((ai * fnv_hash) + bi) % p
-        list.append(min_hash_val)
-        hash_sigs_list.append(str(min(list)))
+        list.append(min_hash_val) # store these minhashes (all 6)
 
-      signature = ','.join(hash_sigs_list)
-
-      if (hash_table.get(signature) is not None):
-        hash_table[signature].append(key)
+      if (collect_sigs.get(key) is not None):
+        collect_sigs[key] += str(min(list))
       else:
-        hash_table[signature] = [key]
+        collect_sigs[key] = str(min(list))
+
+  hash_tables_with_qid_as_key[index] = dict(collect_sigs)
+
+  for key, value in collect_sigs.items():
+    if (hash_table.get(value) is not None):
+      hash_table[value].append(key)
+    else:
+      hash_table[value] = [key]
+
+  index += 1
 
 similar_questions_dict = dict()
 
-for hash_table in hash_tables:
+for hash_table in hash_tables_with_signature_as_key:
   for key, value in hash_table.items():
     if (len(value) > 1):
       temp_qid_list = value
@@ -66,16 +77,6 @@ for hash_table in hash_tables:
         else:
           similar_questions_dict[qid] = temp_qid_list
 
-updated_similar_questions_dict = dict()
-
-for key, value in similar_questions_dict.items():
-  for elem in value:
-    if (key is not elem):
-      if (updated_similar_questions_dict.get(key) is not None):
-        updated_similar_questions_dict[key].append(elem)
-      else:
-        updated_similar_questions_dict[key] = [elem]
-
 words_in_questions_dict = dict()
 
 for question in words_in_questions:
@@ -85,7 +86,7 @@ for question in words_in_questions:
 
 final_sim_questions_dict = dict()
 
-for key, value in updated_similar_questions_dict.items():
+for key, value in similar_questions_dict.items():
   int_key = int(key)
 
   for qid in value:
@@ -97,16 +98,12 @@ for key, value in updated_similar_questions_dict.items():
       else:
         final_sim_questions_dict[int_key] = [int_qid]
 
-output_file = open('question_sim_150k.tsv','w+')
+output_file = open('question_sim_4k.tsv','w+')
 
 output_file.write('qid \t similar-qids \n')
 
-for q in words_in_questions:
-  flag = False
-
-  for key, value in final_sim_questions_dict.items():
-    if int(key) == int(q[0]):
-      flag = True
-      output_file.write(str(key) + '\t' + (', '.join(str(e) for e in value)) + '\n')
-  if not flag:
-    output_file.write(str(q[0]) + '\t' + '\n')
+for key in sorted(final_sim_questions_dict.keys()):
+  if (len(final_sim_questions_dict[key]) > 1):
+    output_file.write(str(key) + '\t' + (', '.join(str(e) for e in final_sim_questions_dict[key] if e != key)) + '\n')
+  else:
+    output_file.write(str(key) + '\t' + '\n')
