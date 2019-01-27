@@ -3,7 +3,10 @@ import uuid
 
 p = 15373875993579943603
 
-lines = [line.rstrip('\n') for line in open('./question-dataset/question_10.tsv')]
+def compute_jaccard_similarity(set_1, set_2):
+  return len(set_1 & set_2) / len(set_1 | set_2)
+
+lines = [line.rstrip('\n') for line in open('./question-dataset/question_150k.tsv')]
 
 words_in_questions = []
 
@@ -48,4 +51,48 @@ for hash_table in hash_tables:
       else:
         hash_table[signature] = [key]
 
-print(hash_tables)
+similar_questions_dict = dict()
+
+for hash_table in hash_tables:
+  for key, value in hash_table.items():
+    if (len(value) > 1):
+      temp_qid_list = value
+
+      for qid in value:
+        if (similar_questions_dict.get(qid) is not None):
+          for temp_qid in temp_qid_list:
+            if temp_qid not in similar_questions_dict[qid]:
+              similar_questions_dict[qid].append(temp_qid)
+        else:
+          similar_questions_dict[qid] = temp_qid_list
+
+updated_similar_questions_dict = dict()
+
+for key, value in similar_questions_dict.items():
+  for elem in value:
+    if (key is not elem):
+      if (updated_similar_questions_dict.get(key) is not None):
+        updated_similar_questions_dict[key].append(elem)
+      else:
+        updated_similar_questions_dict[key] = [elem]
+
+words_in_questions_dict = dict()
+
+for question in words_in_questions:
+  question[0] = int(question[0])
+  question[1] = set(question[1])
+  words_in_questions_dict[question[0]] = question[1]
+
+final_sim_questions_dict = dict()
+
+for key, value in updated_similar_questions_dict.items():
+  int_key = int(key)
+
+  for qid in value:
+    int_qid = int(qid)
+
+    if (compute_jaccard_similarity(words_in_questions_dict[int_key], words_in_questions_dict[int_qid]) >= 0.6):
+      if (final_sim_questions_dict.get(int_key) is not None):
+        final_sim_questions_dict[int_key].append(int_qid)
+      else:
+        final_sim_questions_dict[int_key] = [int_qid]
