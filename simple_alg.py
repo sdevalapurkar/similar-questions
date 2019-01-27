@@ -1,7 +1,4 @@
 def compute_jaccard_similarity(set_1, set_2):
-  if set_1 == set_2:
-    return 0
-
   return len(set_1 & set_2) / len(set_1 | set_2)
 
 lines = [line.rstrip('\n') for line in open('./question-dataset/question_4k.tsv')]
@@ -37,11 +34,10 @@ output_file = open('question_sim_4k.tsv','w+')
 
 output_file.write('qid \t similar-qids \n')
 
-for q in words_in_questions:
-  flag = False
-  for key, value in sim_questions_dict.items():
-    if int(key) == int(q[0]):
-      flag = True
-      output_file.write(str(key) + '\t' + (', '.join(str(e) for e in value)) + '\n')
-  if not flag:
-    output_file.write(str(q[0]) + '\t' + '\n')
+for question in words_in_questions:
+  key = int(question[0])
+
+  if (sim_questions_dict.get(key) is not None and len(sim_questions_dict.get(key)) > 1):
+    output_file.write(str(key) + '\t' + (', '.join(str(e) for e in sim_questions_dict[key] if e != key)) + '\n')
+  else:
+    output_file.write(str(key) + '\t' + '\n')
