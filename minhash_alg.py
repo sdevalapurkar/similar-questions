@@ -1,18 +1,15 @@
 from fnv import *
 import uuid
 
-
 # Compute the Jaccard Similarity of two sets
 def compute_jaccard_similarity(set_1, set_2):
   return len(set_1 & set_2) / len(set_1 | set_2)
-
 
 # Load the 150k Questions TSV file
 def getData():
     lines = [line.rstrip('\n') for line in open('./question-dataset/question_150k.tsv')]
 
     return lines
-
 
 # Split each question into its set of words
 def getWordsInQuestions(lines):
@@ -25,7 +22,6 @@ def getWordsInQuestions(lines):
     words_in_questions.pop(0)
 
     return words_in_questions
-
 
 # Transform all words in each question into hashed values
 def getFNVHashes(words_in_questions):
@@ -43,12 +39,10 @@ def getFNVHashes(words_in_questions):
 
     return fnv_hashes
 
-
 # Generate 14 hash tables containing minHash signatures and qIDs
 def createHashTables(fnv_hashes):
     hash_tables_with_signature_as_key = [dict() for i in range(1, 15)]
     hash_tables_with_qid_as_key = [dict() for i in range(1, 15)]
-    hash_sigs_list = dict()
     index = 0
 
     for hash_table in hash_tables_with_signature_as_key: # for each of 14 hash tables
@@ -82,7 +76,6 @@ def createHashTables(fnv_hashes):
 
     return hash_tables_with_signature_as_key, hash_tables_with_qid_as_key
 
-
 # Generate a dictionary containing all questions with similar question IDs (qid)
 def getSimilarQuestions(hash_tables_with_signature_as_key):
     similar_questions_dict = dict()
@@ -101,7 +94,6 @@ def getSimilarQuestions(hash_tables_with_signature_as_key):
               similar_questions_dict[qid] = temp_qid_list
 
     return similar_questions_dict
-
 
 # Generate a final dictionary of all Jaccard validated similarities
 def validateFinalSimilarities(words_in_questions, similar_questions_dict):
@@ -128,7 +120,6 @@ def validateFinalSimilarities(words_in_questions, similar_questions_dict):
 
     return final_sim_questions_dict
 
-
 # Write final similarity dictionary into output TSV format
 def writeResultsToCSV(words_in_questions, final_sim_questions_dict):
     output_file = open('question_sim_150k.tsv','w+')
@@ -142,7 +133,6 @@ def writeResultsToCSV(words_in_questions, final_sim_questions_dict):
         output_file.write(str(key) + '\t' + (', '.join(str(e) for e in final_sim_questions_dict[key] if e != key)) + '\n')
       else:
         output_file.write(str(key) + '\t' + '\n')
-
 
 if __name__ == "__main__":
     p = 15373875993579943603
